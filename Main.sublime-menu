@@ -3,7 +3,7 @@
     "id": "find",
     "children":
     [
-        {"id": "find_behave_step"},
+        {"id": "find_behave_step", "caption": "-"},
         { "command": "behave_step_finder", "caption": "Find behave Step" },
         { "command": "match_step", "caption": "Match behave Step" }
     ]
