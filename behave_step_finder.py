@@ -9,8 +9,10 @@ import step_finder
 
 
 # Static data
-global_finder = None
-global_steps = []
+shared_data = {
+    'finder': None,
+    'steps': []
+}
 
 
 class BehaveBaseCommand(sublime_plugin.WindowCommand, object):
@@ -114,26 +116,22 @@ class BehaveStepCollectorThread(threading.Thread):
     def run(self):
         os.chdir(self.root_path)
         os_access = os_interface.OsInterface(self.steps_path)
-        global_finder = step_finder.StepFinder(os_access)
-        global_steps = global_finder.find_all_steps()
-
+        shared_data["finder"] = step_finder.StepFinder(os_access)
+        shared_data["steps"] = shared_data["finder"].find_all_steps()
 
 
 class BehaveAutoCompleteEventListener(sublime_plugin.EventListener):
     def on_post_save(self, view):
         if is_feature_file_view(view):
-            print("DEBUG onload")
             BehaveStepCollectorThread(self._get_root_folder(view), self._get_steps_path()).start()
 
     def on_load(self, view):
         if is_feature_file_view(view) and is_feature_file(view.file_name()):
-            print("DEBUG onload")
             BehaveStepCollectorThread(self._get_root_folder(view), self._get_steps_path()).start()
 
     def on_query_completions(self, view, prefix, locations):
-        print("DEBUG query completions", global_finder)
-        if is_feature_file_view(view) and global_finder:
-            matches = global_finder.match(prefix)
+        if is_feature_file_view(view) and shared_data["finder"]:
+            matches = shared_data["finder"].match(prefix)
             return (matches, sublime.INHIBIT_WORD_COMPLETIONS)
         return ([], 0)
 
