@@ -35,13 +35,10 @@ Change it if one is already used in your configuration
 The following settings are available so far.
 
     {
-       "behave_features_path"  :  "features",
-       "behave_step_pattern"   :  ".*_steps.*\\.py",
-       "behave_code_keywords"  :  ["given", "when", "then", "and", "but"]
+       "behave_steps_path"    : ["features/*_steps.py"],
+       "behave_code_keywords" : ["given", "when", "then", "and", "but"]
     }
 
-The plugin looks for `behave_features_path` as a direct subdirectory of your project. Override this setting if your steps are located in a different subdirectory.
-
-In the given features directory it uses the second setting for finding step-files recursively matching the `behave_step_pattern`
+The plugin looks for `behave_steps_path` as a direct subdirectory of your project. Override this setting if your steps can be located with a different pattern match.
 
 For finding the matching step, behaveStepFinder needs to know which are the behave-keywords. Since there are different keywords beside English, you can configure them in `behave_code_keywords`.
