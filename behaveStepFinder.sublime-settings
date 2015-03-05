@@ -1,4 +1,4 @@
 {
-    "behave_steps_path"  :  "IntegTests/steps/steps_*.py",
+    "behave_steps_path"  :  ["IntegTests/steps/steps_*.py", "HwTests/steps/cam/steps_*.py"],
     "behave_code_keywords"  :  ["given", "when", "then", "and", "but"]
 }

@@ -7,7 +7,11 @@ class OsInterface():
         self.step_path = step_path
 
     def get_files(self):
-        return glob.glob(self.step_path)
+        files = []
+        for path in self.step_path:
+            files.extend(glob.glob(path))
+
+        return files
 
     def open(self, filename):
         lines = []
