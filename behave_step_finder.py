@@ -3,8 +3,14 @@ import sublime
 import sublime_plugin
 import os
 import re
+import threading
 import os_interface
 import step_finder
+
+
+# Static data
+global_finder = None
+global_steps = []
 
 
 class BehaveBaseCommand(sublime_plugin.WindowCommand, object):
@@ -96,3 +102,58 @@ class behaveStepFinderCommand(BehaveBaseCommand):
         self.find_all_steps()
         steps_only = [x[0] for x in self.steps]
         self.window.show_quick_panel(steps_only, self.step_found)
+
+
+class BehaveStepCollectorThread(threading.Thread):
+
+    def __init__(self, root_path, steps_path):
+        self.root_path = root_path
+        self.steps_path = steps_path
+        threading.Thread.__init__(self)
+
+    def run(self):
+        os.chdir(self.root_path)
+        os_access = os_interface.OsInterface(self.steps_path)
+        global_finder = step_finder.StepFinder(os_access)
+        global_steps = global_finder.find_all_steps()
+
+
+
+class BehaveAutoCompleteEventListener(sublime_plugin.EventListener):
+    def on_post_save(self, view):
+        if is_feature_file_view(view):
+            print("DEBUG onload")
+            BehaveStepCollectorThread(self._get_root_folder(view), self._get_steps_path()).start()
+
+    def on_load(self, view):
+        if is_feature_file_view(view) and is_feature_file(view.file_name()):
+            print("DEBUG onload")
+            BehaveStepCollectorThread(self._get_root_folder(view), self._get_steps_path()).start()
+
+    def on_query_completions(self, view, prefix, locations):
+        print("DEBUG query completions", global_finder)
+        if is_feature_file_view(view) and global_finder:
+            matches = global_finder.match(prefix)
+            return (matches, sublime.INHIBIT_WORD_COMPLETIONS)
+        return ([], 0)
+
+    def _get_root_folder(self, view):
+        if view.window() is None or len(view.window().folders()) == 0:
+            print "ERROR: behave_step_finder Could not find the path of the open file"
+            return "No path found"
+
+        return view.window().folders()[0]
+
+    def _get_steps_path(self):
+        settings = sublime.load_settings("behaveStepFinder.sublime-settings")
+        return settings.get('behave_steps_path')
+
+
+def is_feature_file_view(view, locations = None):
+    is_feature_filename = view.file_name() and is_feature_file(view.file_name())
+    is_gherkin_syntax = 'Cucumber' in view.settings().get('syntax')
+    return is_feature_filename or is_gherkin_syntax
+
+
+def is_feature_file(file):
+    return file and file.endswith('.feature')
