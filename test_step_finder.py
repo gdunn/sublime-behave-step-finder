@@ -112,7 +112,7 @@ class TestStepFinder(unittest.TestCase):
     def test_get_simple_complete_match(self):
         finder = buildStepFinderWithSteps(["@Given('there is a step')"])
         matches = finder.match("Given there is a ste")
-        self.assertEqual(matches[0], ("Given there is a step", "Given there is a step"))
+        self.assertEqual(matches[0], ("Given there is a step", "step"))
 
     def test_no_match(self):
         finder = buildStepFinderWithSteps(["@Given('there is a step')"])
@@ -130,18 +130,37 @@ class TestStepFinder(unittest.TestCase):
         self.assertEqual(len(matches), 0)
 
     def test_all_matches(self):
-        finder = buildStepFinderWithSteps(["@When('the device is turned on')", "@Then('the device is on')"])
-        matches = finder.match("And the device")
+        finder = buildStepFinderWithSteps(["@When('the device is turned on')", "@When('the device is on')"])
+        matches = finder.match("When the device")
         self.assertEqual(len(matches), 2)
-        self.assertEqual(matches[0], ("When the device is turned on", "When the device is turned on"))
-        self.assertEqual(matches[1], ("Then the device is on", "Then the device is on"))
+        self.assertEqual(matches[0], ("When the device is on", "device is on"))
+        self.assertEqual(matches[1], ("When the device is turned on", "device is turned on"))
 
     def test_multiple_matches(self):
-        finder = buildStepFinderWithSteps(["@Given('there is a first step')", "@When('the device is turned on')", "@Then('the device is on')"])
-        matches = finder.match("And the device")
+        finder = buildStepFinderWithSteps(["@Given('there is a first step')", "@When('the device is turned on')", "@When('the device is on')"])
+        matches = finder.match("When the device")
         self.assertEqual(len(matches), 2)
-        self.assertEqual(matches[0], ("When the device is turned on", "When the device is turned on"))
-        self.assertEqual(matches[1], ("Then the device is on", "Then the device is on"))
+        self.assertEqual(matches[0], ("When the device is on", "device is on"))
+        self.assertEqual(matches[1], ("When the device is turned on", "device is turned on"))
+
+    def test_and_matches_none(self):
+        finder = buildStepFinderWithSteps(["@Given('there is a first step')", "@When('the device is turned on')", "@When('the device is on')"])
+        matches = finder.match("And the device")
+        self.assertEqual(len(matches), 0)
+
+    def test_results_are_sorted(self):
+        finder = buildStepFinderWithSteps(["@Given('there is a first step')", "@When('the device deactivates')", "@When('the device activates')"])
+        matches = finder.match("When the device")
+        self.assertEqual(len(matches), 2)
+        self.assertEqual(matches[0], ("When the device activates", "device activates"))
+        self.assertEqual(matches[1], ("When the device deactivates", "device deactivates"))
+
+    def test_trailing_space(self):
+        finder = buildStepFinderWithSteps(["@Given('the setup is okay')", "@Given('there is no setup')"])
+        matches = finder.match("Given the ")
+        self.assertEqual(len(matches), 1)
+        self.assertEqual(matches[0], ("Given the setup is okay", "setup is okay"))
+
 
 if __name__ == '__main__':
     unittest.main()

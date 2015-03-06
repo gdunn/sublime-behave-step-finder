@@ -131,14 +131,21 @@ class BehaveAutoCompleteEventListener(sublime_plugin.EventListener):
 
     def on_query_completions(self, view, prefix, locations):
         if is_feature_file_view(view) and shared_data["finder"]:
-            matches = shared_data["finder"].match(prefix)
-            return (matches, sublime.INHIBIT_WORD_COMPLETIONS)
+            (predicate, search) = find_predicate(view)
+            matches = []
+            if search:
+                matches.extend(shared_data["finder"].match(search))
+            if predicate:
+                matches.extend(shared_data["finder"].match(predicate))
+            if not search and predicate is None:
+                matches = shared_data["finder"].match(prefix)
+            return (matches, sublime.INHIBIT_WORD_COMPLETIONS | sublime.INHIBIT_EXPLICIT_COMPLETIONS)
         return ([], 0)
 
     def _get_root_folder(self, view):
         if view.window() is None or len(view.window().folders()) == 0:
-            print "ERROR: behave_step_finder Could not find the path of the open file"
-            return "No path found"
+            """ Try and get it from the filename instead """
+            return os.path.dirname(view.file_name())
 
         return view.window().folders()[0]
 
@@ -147,7 +154,29 @@ class BehaveAutoCompleteEventListener(sublime_plugin.EventListener):
         return settings.get('behave_steps_path')
 
 
-def is_feature_file_view(view, locations = None):
+def find_predicate(view):
+    predicate = None
+    search = None
+    for sel in view.sel():
+        if sel.empty():
+            match = None
+            while not match or sel.b > -1:
+                line = view.substr(view.line(sel.b)).strip()
+                if search is None:
+                    search = line
+                match = re.match(r'^(given|when|then)', line, re.IGNORECASE)
+                if match:
+                    predicate = match.group(0).lower()
+                    break
+                else:
+                    row, col = view.rowcol(sel.b)
+                    sel = sublime.Region(sel.a, view.text_point(row - 1, col))
+            break
+    search = re.sub(r'^(given|when|then|and)\s?', '', search)
+    return (predicate, search)
+
+
+def is_feature_file_view(view):
     is_feature_filename = view.file_name() and is_feature_file(view.file_name())
     is_gherkin_syntax = 'Cucumber' in view.settings().get('syntax')
     return is_feature_filename or is_gherkin_syntax

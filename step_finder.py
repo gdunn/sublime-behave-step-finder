@@ -21,8 +21,8 @@ class StepFinder():
             # Construct natural string version
             step_usage = re.sub(r'^@(.*)\(["\'](.*)["\']\)', r'\1 \2', step)
             if self._match_step_to_text(text, step_usage):
-                matches.append((step_usage, step_usage))
-        return matches
+                matches.append((step_usage, self._strip_to_text_placement(text, step_usage)))
+        return sorted(matches)
 
     def _find_steps_in_file(self, filename):
         lines = self.os_interface.open(filename)
@@ -36,11 +36,12 @@ class StepFinder():
         return re.match(pattern, text)
 
     def _match_step_to_text(self, text, step_usage):
-        if text[:3].lower() == "and":
-            text = text[3:].lstrip()
-            step_usage = re.sub(r'^(Given|When|Then) (.+)', r'\2', step_usage, flags=re.IGNORECASE)
-            step_usage_matcher = step_usage[:len(text)]
-            return text.lower() == step_usage_matcher.lower()
-        else:
-            step_usage_matcher = step_usage[:len(text)]
-            return text.lower() == step_usage_matcher.lower()
+        step_usage_matcher = step_usage[:len(text)]
+        return text.lower() == step_usage_matcher.lower()
+
+    def _strip_to_text_placement(self, prefix, full_step):
+        """ Remove last word from prefix """
+        if re.search(r'\s', prefix):
+            prefix = re.sub(r'(.*)\s[^\s]+$', r'\1', prefix)
+            return full_step[len(prefix):].strip()
+        return full_step
