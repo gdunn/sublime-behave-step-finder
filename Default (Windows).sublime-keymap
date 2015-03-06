@@ -1,4 +1,3 @@
 [
-  { "keys": ["ctrl+y"], "command": "behave_step_finder" },
   { "keys": ["ctrl+shift+m"], "command": "match_step" }
 ]
