@@ -19,9 +19,10 @@ class StepFinder():
         matches = []
         for (step, index, filename) in self.steps:
             # Construct natural string version
-            step_usage = re.sub(r'^@(.*)\(["\'](.*)["\']\)', r'\1 \2', step)
+            step_label = re.sub(r'^@(.*)\(["\'](.*)["\']\)', r'\1 \2', step)
+            step_usage = re.sub(r'\{[^}]+\}', '$1', step_label)
             if self._match_step_to_text(text, step_usage):
-                matches.append((step_usage, self._strip_to_text_placement(text, step_usage)))
+                matches.append((step_label, self._strip_to_text_placement(text, step_usage)))
         return sorted(matches)
 
     def _find_steps_in_file(self, filename):

@@ -134,10 +134,13 @@ class BehaveAutoCompleteEventListener(sublime_plugin.EventListener):
             (predicate, search) = find_predicate(view)
             matches = []
             if search:
+                print("DEBUG search ", predicate, search)
                 matches.extend(shared_data["finder"].match(search))
-            if predicate:
+            if not matches and predicate:
+                print("DEBUG predicate ", predicate, search)
                 matches.extend(shared_data["finder"].match(predicate))
             if not search and predicate is None:
+                print("DEBUG prefix ", prefix)
                 matches = shared_data["finder"].match(prefix)
             return (matches, sublime.INHIBIT_WORD_COMPLETIONS | sublime.INHIBIT_EXPLICIT_COMPLETIONS)
         return ([], 0)
@@ -172,7 +175,8 @@ def find_predicate(view):
                     row, col = view.rowcol(sel.b)
                     sel = sublime.Region(sel.a, view.text_point(row - 1, col))
             break
-    search = re.sub(r'^(given|when|then|and)\s?', '', search)
+    if predicate is not None:
+        search = re.sub(r'^And\s?', predicate + " ", search)
     return (predicate, search)
 
 
