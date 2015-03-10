@@ -163,7 +163,7 @@ def find_predicate(view):
     for sel in view.sel():
         if sel.empty():
             match = None
-            while not match or sel.b > -1:
+            while not match or sel.b > 0:
                 line = view.substr(view.line(sel.b)).strip()
                 if search is None:
                     search = line
