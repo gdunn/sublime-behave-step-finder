@@ -161,6 +161,16 @@ class TestStepFinder(unittest.TestCase):
         self.assertEqual(len(matches), 1)
         self.assertEqual(matches[0], ("Given the setup is okay", "setup is okay"))
 
+    def test_subtitute_element(self):
+        finder = buildStepFinderWithSteps(["@Given('the system has \"{thingy}\"')"])
+        matches = finder.match("Given th")
+        self.assertEqual(matches[0], ("Given the system has \"{thingy}\"", "the system has \"$1\""))
+
+    def test_subtitute_two_elements(self):
+        finder = buildStepFinderWithSteps(["@Given('the \"{prince}\" is a \"{frog}\"')"])
+        matches = finder.match("Given th")
+        self.assertEqual(matches[0], ("Given the \"{prince}\" is a \"{frog}\"", "the \"$1\" is a \"$2\""))
+
 
 if __name__ == '__main__':
     unittest.main()

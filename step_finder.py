@@ -18,9 +18,18 @@ class StepFinder():
     def match(self, text):
         matches = []
         for (step, index, filename) in self.steps:
-            # Construct natural string version
+            class SubstituteCounter:
+                def __init__(self):
+                    self.count = 0
+
+                def substitute_variable(self, m):
+                    self.count += 1
+                    return "$" + str(self.count)
+
+            counter = SubstituteCounter()
+
             step_label = re.sub(r'^@(.*)\(["\'](.*)["\']\)', r'\1 \2', step)
-            step_usage = re.sub(r'\{[^}]+\}', '$1', step_label)
+            step_usage = re.sub(r'\{[^}]+\}', counter.substitute_variable, step_label)
             if self._match_step_to_text(text, step_usage):
                 matches.append((step_label, self._strip_to_text_placement(text, step_usage)))
         return sorted(matches)
