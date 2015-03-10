@@ -161,7 +161,8 @@ def find_predicate(view):
     for sel in view.sel():
         if sel.empty():
             match = None
-            while not match or sel.b > 0:
+            can_search_further_up = True
+            while not match and can_search_further_up:
                 line = view.substr(view.line(sel.b)).strip()
                 if search is None:
                     search = line
@@ -170,8 +171,10 @@ def find_predicate(view):
                     predicate = match.group(0).lower()
                     break
                 else:
+                    old_sel_b = sel.b
                     row, col = view.rowcol(sel.b)
                     sel = sublime.Region(sel.a, view.text_point(row - 1, col))
+                    can_search_further_up = sel.b != old_sel_b
             break
     if predicate is not None:
         search = re.sub(r'^And\s?', predicate + " ", search)
