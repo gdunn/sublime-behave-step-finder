@@ -25,8 +25,7 @@ class BehaveBaseCommand(sublime_plugin.WindowCommand, object):
         self.steps_path = self.settings.get('behave_steps_path')  # Default is "IntegTests/steps/steps_*.py"
 
     def find_all_steps(self):
-        os.chdir(self._get_root_folder())
-        os_access = os_interface.OsInterface(self.steps_path)
+        os_access = os_interface.OsInterface(self.steps_path, self._get_root_folder())
         finder = step_finder.StepFinder(os_access)
         self.steps = finder.find_all_steps()
 
@@ -114,8 +113,7 @@ class BehaveStepCollectorThread(threading.Thread):
         threading.Thread.__init__(self)
 
     def run(self):
-        os.chdir(self.root_path)
-        os_access = os_interface.OsInterface(self.steps_path)
+        os_access = os_interface.OsInterface(self.steps_path, self.root_path)
         shared_data["finder"] = step_finder.StepFinder(os_access)
         shared_data["steps"] = shared_data["finder"].find_all_steps()
 

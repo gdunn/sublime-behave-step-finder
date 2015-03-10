@@ -1,15 +1,18 @@
+import os
 import glob
 import codecs
 
 
 class OsInterface():
-    def __init__(self, step_path):
+    def __init__(self, step_path, root_path):
         self.step_path = step_path
+        self.root_path = root_path
 
     def get_files(self):
         files = []
         for path in self.step_path:
-            files.extend(glob.glob(path))
+            search_path = os.path.join(self.root_path, path)
+            files.extend(glob.glob(search_path))
 
         return files
 
