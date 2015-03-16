@@ -171,6 +171,57 @@ class TestStepFinder(unittest.TestCase):
         matches = finder.match("Given th")
         self.assertEqual(matches[0], ("Given the \"{prince}\" is a \"{frog}\"", "the \"$1\" is a \"$2\""))
 
+    def test_match_multi_line_defs(self):
+        finder = buildStepFinderWithSteps(
+            [
+                "@Given('there is a step '",
+                "       'broken up over two lines')",
+                "def impl(context):",
+                "    pass"])
+        steps = finder.find_all_steps()
+        self.assertEqual(len(steps), 1)
+        self.assertEqual(steps[0], ("@Given('there is a step broken up over two lines')", 0, "common_steps.py"))
+
+    def test_match_many_multi_line_defs(self):
+        finder = buildStepFinderWithSteps(
+            [
+                "@Given('there is a different step'",
+                "       'broken up over two lines')",
+                "def impl(context):",
+                "    pass",
+                "",
+                "@When('a step with {number} arguments'",
+                "       ' is also split across two lines')"])
+        steps = finder.find_all_steps()
+        self.assertEqual(len(steps), 2)
+        self.assertEqual(steps[0], ("@Given('there is a different stepbroken up over two lines')", 0, "common_steps.py"))
+        self.assertEqual(steps[1], ("@When('a step with {number} arguments is also split across two lines')", 5, "common_steps.py"))
+
+    def test_do_not_get_confused_by_empty_lines(self):
+        finder = buildStepFinderWithSteps(
+            [
+                "@Given('there is a different step'",
+                    "       'broken up over two lines')",
+                "def impl(context):",
+                "    pass",
+                "",
+                "@When('a step with empty \"\" arguments in \"{two}\" line')"])
+        steps = finder.find_all_steps()
+        self.assertEqual(len(steps), 2)
+        self.assertEqual(steps[0], ("@Given('there is a different stepbroken up over two lines')", 0, "common_steps.py"))
+        self.assertEqual(steps[1], ("@When('a step with empty \"\" arguments in \"{two}\" line')", 5, "common_steps.py"))
+
+    def test_confusing_double_line(self):
+        finder = buildStepFinderWithSteps(
+            [
+                "\n",
+                "@Then('the version for FG, CAM and Humidifier will be unchanged after '\n",
+                "      'the failed upgrade attempt')\n",
+                "def step_impl(context):\n"
+                ])
+        steps = finder.find_all_steps()
+        self.assertEqual(len(steps), 1)
+        self.assertEqual(steps[0], ("@Then('the version for FG, CAM and Humidifier will be unchanged after the failed upgrade attempt')", 1, "common_steps.py"))
 
 if __name__ == '__main__':
     unittest.main()

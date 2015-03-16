@@ -40,10 +40,21 @@ class StepFinder():
             match = self._line_is_a_step(lines[linenumber])
             if match:
                 self.steps.append((match.group(), linenumber, filename))
+            elif lines[linenumber].strip() and (linenumber + 1) < len(lines):
+                line = self._double_line_is_a_step(lines[linenumber].strip() + lines[linenumber+1].strip())
+                if line:
+                    self.steps.append((line, linenumber, filename))
 
     def _line_is_a_step(self, text):
-        pattern = re.compile(r'(@(.*)(\(["\'].*))["\']\)')
+        pattern = re.compile(r'(@(.+)(\(["\'].+))["\']\)')
         return re.match(pattern, text)
+
+    def _double_line_is_a_step(self, double_line):
+        pattern = re.compile(r'@(.+)\(["\'](.+)["\']["\'](.+)["\']\)')
+        match = re.match(pattern, double_line)
+        if match:
+            return "@{0}('{1}{2}')".format(match.group(1), match.group(2), match.group(3))
+        return False
 
     def _match_step_to_text(self, text, step_usage):
         step_usage_matcher = step_usage[:len(text)]
