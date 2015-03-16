@@ -4,12 +4,11 @@ Easily navigate to [behave](https://behave.readthedocs.org) step definitions.
 
 Based on CucumberStepFinder (https://github.com/danielfrey/sublime-cucumber-step-finder)
 
-It provides by now two commands:
+It provides two features:
 
-* One listing all steps in the open project and letting you choose
-a step using the built-in mechanism for search.
-* The second one letting you jump to the corresponding step by calling the "MatchStep"-Command when standing
+* Letting you jump to the corresponding step by calling the "MatchStep"-Command when standing
 on a step in the features file
+* Supporting autocomplete when writing step lines (Using keybinding for auto_complete or insert_best_completion)
 
 # Installation
 
@@ -27,8 +26,7 @@ Installation through [package control](http://wbond.net/sublime_packages/package
 Not tested yet. Contributions are welcome. If keyboard settings are provided, it should work.
 
 ## Usage
-The default key-binding for "search" is `super + y`, respectively
-`ctrl + super + m` for "match".
+The default key-binding for "match" is `ctrl + super + m`
 Change it if one is already used in your configuration
 
 ## Configuration
